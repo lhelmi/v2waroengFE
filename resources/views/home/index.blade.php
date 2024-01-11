@@ -6,7 +6,7 @@
 
     <div class="col-12">
         <div class="collapse col-sm-12" id="collapseExample">
-            <div class="card card-body ">
+            <div class="card card-body" style="height: 800px">
                 <div id="reader" style="height: 300px"></div>
             </div>
         </div>
@@ -89,6 +89,7 @@
             return;
         }
         $("#barcode").val(decodedText);
+        closeCamera();
         $("#searchForm").trigger("submit");
     }
 
@@ -107,7 +108,6 @@
         if(element.text() == "Tutup Scanner"){
             element.text("Buka Scanner")
             $(document).find('#html5-qrcode-button-camera-stop').trigger('click');
-
             //pause
             // let shouldPauseVideo = true;
             // let showPausedBanner = false;
@@ -118,12 +118,17 @@
             $("renderCollapse").toggle('show');
             html5QrcodeScanner.render(onScanSuccess);
             element.text("Tutup Scanner");
-
         }
     });
 
+    const closeCamera = () => {
+        $("#start-scanner").trigger('click');
+        $(document).find('#html5-qrcode-button-camera-stop').trigger('click');
+    };
+
     const getProduct = async (barcode) => {
-        const res = await fetch(setUrl(`/product/barcode/${barcode}`));
+        // const res = await fetch(setUrl(`/product/barcode/${barcode}`));
+        const res = await fetch(`http://192.168.41.79:2023/api/product/s?params=${barcode}`);
         return res;
     }
 
