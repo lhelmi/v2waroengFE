@@ -26,7 +26,7 @@
         </form>
     </div>
 
-    <div class="card text-white bg-secondary mb-3">
+    <div class="card shadow p-3 mb-5 rounded mb-3">
         <div class="card-body">
             <div class="row g-3 mb-3">
                 <div class="col-4">
@@ -85,11 +85,15 @@
 
     async function onScanSuccess(decodedText, decodedResult) {
         if(!isNumber(decodedText)){
-            alert(`barcode not falid : ${decodedText}`);
+            Swal.fire({
+                text: `barcode tidak valid : ${decodedText}`,
+                icon: "error"
+            });
             return;
         }
+        $(document).find('#html5-qrcode-button-camera-stop').trigger('click');
         $("#barcode").val(decodedText);
-        closeCamera();
+        // closeCamera();
         $("#searchForm").trigger("submit");
     }
 
@@ -136,7 +140,13 @@
         e.preventDefault();
         const barcode = $("#barcode").val();
         const res = await getProduct(barcode);
-        if(res.status !== 200) return alert(res.statusText);
+        if(res.status !== 200){
+            Swal.fire({
+                text: `${res.statusText}`,
+                icon: "error"
+            });
+            return;
+        }
         const product = await res.json();
         const add = addProduct(product.data);
 
@@ -194,20 +204,39 @@
         }
     }
 
-    const removeProduct = (data) => {
+    const removeProduct = async (data) => {
         let current = []
 
         current = getProductList(data);
         if(current.length == 0){
-            alert("data tidak ditemukan")
+            Swal.fire({
+                text: "Data tidak ditemukan?",
+                icon: "question"
+            });
             return false;
         }
 
-        if (confirm("adakah anda yakin ingin menghapusnya?") == true) {
-            productList.splice(current[0].index);
-            return true;
-        }
-        return false;
+        let is_remove = false;
+        await Swal.fire({
+            title: "Apakah anda yakin?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            cancelButtonText : "Tidak",
+            confirmButtonText: "Ya, Hapus!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                productList.splice(current[0].index, 1);
+                Swal.fire({
+                    title: "Produk terhapus!",
+                    timer: 2000,
+                    icon: "success"
+                });
+                is_remove = true;
+            }
+        });
+        return is_remove;
 
     }
 
@@ -228,17 +257,18 @@
 
     }
 
-    $(document).on('click', '.btnDeleteProduct', function () {
+    $(document).on('click', '.btnDeleteProduct', async function () {
         const card = $(this).parent('.card-body');
         const barcode = card.children('.row').find('.barcode').val();
         const temp = {
             barcode : barcode
         }
-        const remove = removeProduct(temp);
+        const remove = await removeProduct(temp);
+
         if(remove){
+            number -= 1;
             card.parent('.cardMain').remove();
         }
-        number -= 1;
         sumTotal();
     });
 
@@ -246,7 +276,7 @@
 
     const productCard = (number, barcode, name, price) => {
         let row = "";
-        return row += `<div class="card cardMain text-white bg-secondary mb-3" data-code="${barcode}">
+        return row += `<div class="card cardMain text-white bg-secondary shadow p-3 mb-5" data-code="${barcode}">
             <div class="row card-header">${number}. ${name}</div>
             <div class="card-body">
                 <button type="button" class="btn btn-warning col-12 mb-2 btnDeleteProduct">Hapus</button>
@@ -288,13 +318,31 @@
     }
 
     $("#removeAll").on("click", function(){
-        if (confirm("adakah anda yakin ingin membersihkan keranjang?") == true) {
-            $("#productList .cardMain").map(function(){
-                const element = $(this);
-                element.remove();
-                sumTotal();
-            });
-        }
+        Swal.fire({
+            title: "Apakah anda yakin?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            cancelButtonText : "Tidak",
+            confirmButtonText: "Ya, Hapus!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $("#productList .cardMain").map(function(){
+                    const element = $(this);
+                    element.remove();
+                    productList = [];
+                    number = 0;
+                    sumTotal();
+                    $("#bayar").trigger('keyup');
+                    Swal.fire({
+                        title: "Produk terhapus!",
+                        timer: 2000,
+                        icon: "success"
+                    });
+                });
+            }
+        });
     });
 
     $(document).on('change', '.quantity', function () {
@@ -312,7 +360,7 @@
 
         let kembalian = 0;
 
-        kembalian = value - parseInt(total);
+        kembalian = value - parseInt(rupiahToNumber(total));
         let minus = '';
         if(kembalian < 0) minus = "-";
         kembalian = `${minus}${formatRupiah(kembalian)}`;
