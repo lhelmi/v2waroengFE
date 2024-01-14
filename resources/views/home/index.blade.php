@@ -1,4 +1,7 @@
 @extends('layouts.app')
+@section('css')
+
+@endsection
 @section('content')
 <div class="container">
     <div class="col-sm-12" id="productList">
@@ -132,7 +135,7 @@
 
     const getProduct = async (barcode) => {
         // const res = await fetch(setUrl(`/product/barcode/${barcode}`));
-        const res = await fetch(`http://192.168.41.79:2023/api/product/s?params=${barcode}`);
+        const res = await fetch(`${APP_BE_URL}api/product/s?params=${barcode}`);
         return res;
     }
 

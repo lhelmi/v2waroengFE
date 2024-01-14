@@ -1,5 +1,6 @@
 @extends('layouts.app')
-
+@section('css')
+@endsection
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
@@ -8,16 +9,15 @@
                 <div class="card-header">{{ __('Login') }}</div>
 
                 <div class="card-body">
-                    <form method="POST" action="{{ route('login') }}">
+                    <form method="POST" id="loginForm">
                         @csrf
-
                         <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
+                            <label for="username" class="col-md-4 col-form-label text-md-end">{{ __('Username') }}</label>
 
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                                <input id="username" type="text" class="form-control @error('username') is-invalid @enderror" name="username" value="{{ old('username') }}" required autocomplete="username" autofocus>
 
-                                @error('email')
+                                @error('username')
                                     <span class="invalid-feedback" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
@@ -70,4 +70,16 @@
         </div>
     </div>
 </div>
+@endsection
+@section('js')
+    <script type="module">
+        $("#loginForm").on("submit", async function(e){
+            e.preventDefault();
+            const data = formSerialize($(this).serializeArray());
+            const url = setUrl(`/login`);
+            const send = await sendData(data, url, 'POST');
+            console.log(send);
+
+        });
+    </script>
 @endsection

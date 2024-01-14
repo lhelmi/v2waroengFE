@@ -1,3 +1,58 @@
+function validStatusCode(){
+    return [
+        200, 201
+    ];
+}
+
+function invalidStatusCode(){
+    return [
+        403
+    ];
+}
+
+async function fetchData(data, url, method) {
+    const res = await fetch(url, {
+        method: method,
+        body: JSON.stringify(data),
+        headers: {"Content-type": "application/json; charset=UTF-8"}
+    });
+
+    return res;
+}
+
+async function sendData(data, url, method){
+
+    const fetch = await fetchData(data, url, method);
+
+    if(validStatusCode().includes(fetch.status)){
+        const res = await fetch.json();
+        return res;
+    }
+
+    if(invalidStatusCode().includes(fetch.status)){
+        const res = await fetch.json();
+        return res;
+    }
+
+    console.log(fetch);
+    return Swal.fire({
+        title: `Error : ${fetch.status}`,
+        text: `Pesan Error : ${fetch.statusText}`,
+        icon: "error"
+    });
+
+
+}
+
+function formSerialize(data){
+    const res = data.reduce((map, obj) => {
+        map[obj.name] = obj.value;
+        return map;
+    }, {});
+
+    return res;
+}
+
 function setUrl(target) {
     if (!target.startsWith('/'))
         target = '/' + target;
