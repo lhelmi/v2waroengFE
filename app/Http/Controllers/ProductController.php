@@ -3,27 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\ProductService;
 
 class ProductController extends Controller
 {
-    public function __construct(){}
 
-    public function show($code)
+    public function __construct(){
+        $this->service = new ProductService();
+    }
+    private $service;
+
+    public function show($param)
     {
-        $data = $this->getProduct($code);
 
+        $data = $this->service->showProduct($param);
 
-        if(count($data)){
-            return response()->json([
-                'message' => 'product',
-                'data' => $data
-            ], 200);
-        }
+        // if(count($data)){
+        //     return response()->json([
+        //         'message' => 'product',
+        //         'data' => $data
+        //     ], 200);
+        // }
 
-        return response()->json([
-            'message' => 'not found',
-            'data' => null
-        ], 404);
+        return $data;
 
     }
 

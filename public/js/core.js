@@ -6,40 +6,117 @@ function validStatusCode(){
 
 function invalidStatusCode(){
     return [
-        403
+        403, 401
+    ];
+}
+
+function notFoundStatusCode(){
+    return [
+        404
     ];
 }
 
 async function fetchData(data, url, method) {
-    const res = await fetch(url, {
+    let body = {
         method: method,
-        body: JSON.stringify(data),
         headers: {"Content-type": "application/json; charset=UTF-8"}
-    });
+    };
+    switch (method) {
+        case 'POST':
+            body.body = JSON.stringify(data);
+        break;
+
+        case 'PUT':
+            body.body = JSON.stringify(data);
+        break;
+
+        case 'GET':
+            body;
+        break;
+
+        default:
+            body;
+        break;
+    }
+    const res = await fetch(url, body);
 
     return res;
+}
+
+async function setStatus(fetch){
+    let temp = await fetch.json();
+    temp.status = fetch.status;
+    return temp;
+}
+
+function setToken (key, value) {
+    const now = new Date();
+    const item = {
+        value: value,
+        expiry: now.getTime() + getTTL(),
+    }
+    localStorage.setItem(key, JSON.stringify(item))
+}
+
+function getTTL(){
+    return (1000 * 60) * 60;
+}
+
+function isLogin(){
+    const token = localStorage.getItem("token");
+    if(token){
+        window.location.href = setUrl('/home');
+    }
+}
+
+function getWithExpiry(key) {
+    const itemStr = localStorage.getItem(key);
+    if (!itemStr) {
+        return null
+    }
+
+    const item = JSON.parse(itemStr)
+    const now = new Date()
+    if (now.getTime() > item.expiry) {
+        console.log(localStorage.getItem("token"));
+        localStorage.removeItem(key)
+        return null
+    }
+    console.log(localStorage.getItem("token"));
+    return item.value
 }
 
 async function sendData(data, url, method){
 
     const fetch = await fetchData(data, url, method);
+    if(notFoundStatusCode().includes(fetch.status)){
+        const res = await fetch.json();
+        if(res?.internal){
+            Swal.fire({
+                text: `${res.error}`,
+                icon: "error"
+            });
+        }
+        return fetch;
+    }
 
     if(validStatusCode().includes(fetch.status)){
-        const res = await fetch.json();
+        const res = await setStatus(fetch);
         return res;
     }
 
     if(invalidStatusCode().includes(fetch.status)){
-        const res = await fetch.json();
+        const res = await setStatus(fetch);
         return res;
     }
 
-    console.log(fetch);
-    return Swal.fire({
+    Swal.fire({
         title: `Error : ${fetch.status}`,
         text: `Pesan Error : ${fetch.statusText}`,
         icon: "error"
     });
+
+    return fetch;
 
 
 }

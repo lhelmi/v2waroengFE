@@ -134,8 +134,9 @@
     };
 
     const getProduct = async (barcode) => {
-        // const res = await fetch(setUrl(`/product/barcode/${barcode}`));
+        // const res = await sendData(null, setUrl(`/product/param/${barcode}`), 'GET');
         const res = await fetch(`${APP_BE_URL}api/public/product?params=${barcode}`);
+
         return res;
     }
 

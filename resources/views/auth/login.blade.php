@@ -56,7 +56,6 @@
                                 <button type="submit" class="btn btn-primary">
                                     {{ __('Login') }}
                                 </button>
-
                                 @if (Route::has('password.request'))
                                     <a class="btn btn-link" href="{{ route('password.request') }}">
                                         {{ __('Forgot Your Password?') }}
@@ -73,13 +72,27 @@
 @endsection
 @section('js')
     <script type="module">
+        isLogin();
+
         $("#loginForm").on("submit", async function(e){
             e.preventDefault();
             const data = formSerialize($(this).serializeArray());
-            const url = setUrl(`/login`);
-            const send = await sendData(data, url, 'POST');
-            console.log(send);
+            const res = await sendData(data, `${APP_BE_URL}api/users/login`, 'POST');
+            console.log(res)
+            if(res.status !== 200){
+                Swal.fire({
+                    text: `${res.errors}`,
+                    icon: "error"
+                });
+                return;
+            }
 
+            setToken("token", res.data.token);
+            Swal.fire({
+                text: `success`,
+                icon: "success"
+            });
+            return;
         });
     </script>
 @endsection
